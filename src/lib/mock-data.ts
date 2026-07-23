@@ -1,5 +1,6 @@
-// FIXA — Athletic Intelligence Hub mock data
-// Central analytical model linking profile ⇄ lifts ⇄ jumps ⇄ nutrition ⇄ sleep
+// FIXA — Dynamic Athletic Intelligence Engine mock data
+// Fluid, context-aware model — mirrors a real head coach's reasoning.
+// Fuses lifts (VBT + ROM + RFD) · jumps · nutrition · sleep · subjective wellness
 // Athlete: Alex Rivera, 17, 192cm / 85kg, PG/SG, Riverside Elite U18
 
 // ============================================================================
@@ -23,6 +24,8 @@
 
 export type Goal = "lean_down" | "gain_mass" | "maintain";
 export type Direction = "up" | "down" | "hold";
+export type Domain = "program" | "nutrition" | "prehab" | "coaching";
+export type Severity = "info" | "watch" | "high";
 
 export const athlete = {
   id: "u_alex",
