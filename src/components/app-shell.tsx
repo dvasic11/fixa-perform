@@ -1,19 +1,19 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Video, Utensils, CalendarDays, MessageSquare } from "lucide-react";
+import { Home, Video, Utensils, HeartPulse, Brain } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 const tabs: Array<{
-  to: "/" | "/plan" | "/lifts" | "/nutrition" | "/chat";
+  to: "/" | "/lifts" | "/nutrition" | "/recovery" | "/coach";
   label: string;
   icon: typeof Home;
   exact?: boolean;
 }> = [
   { to: "/", label: "Hub", icon: Home, exact: true },
-  { to: "/plan", label: "Plan", icon: CalendarDays },
   { to: "/lifts", label: "Lifts", icon: Video },
   { to: "/nutrition", label: "Fuel", icon: Utensils },
-  { to: "/chat", label: "Chat", icon: MessageSquare },
+  { to: "/recovery", label: "Recover", icon: HeartPulse },
+  { to: "/coach", label: "Coach", icon: Brain },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
