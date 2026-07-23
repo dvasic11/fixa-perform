@@ -332,7 +332,15 @@ export const wellnessLabels: Record<WellnessKey, { title: string; low: string; h
 // ============================================================================
 // NUTRITION SCORE — dynamic composite
 // ============================================================================
-export const nutritionScore = {
+export const nutritionScore: {
+  overall: number;
+  caloricAccuracy: number;
+  macroDistribution: number;
+  performanceTiming: number;
+  hydration: number;
+  trend7d: number;
+  weakest: "caloricAccuracy" | "macroDistribution" | "performanceTiming" | "hydration";
+} = {
   overall: 74,               // 0-100
   caloricAccuracy: 82,       // vs dynamic target
   macroDistribution: 78,
