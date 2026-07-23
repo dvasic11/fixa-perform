@@ -82,22 +82,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       { name: "theme-color", content: "#1a1d24" },
-      { title: "FIXA — Athletic Intelligence Hub" },
+      { title: "FIXA - Dynamic Athlete Intelligence" },
       {
         name: "description",
         content:
-          "The unified intelligence hub for all athletes: lifts, jumps, nutrition, and sleep synthesised into one readiness signal.",
+          "A context-aware AI head coach. FIXA fuses lifts, jumps, sleep, nutrition and daily wellness into one adaptive plan.",
       },
-      { property: "og:title", content: "FIXA — Athletic Intelligence Hub" },
+      { property: "og:title", content: "FIXA - Dynamic Athlete Intelligence" },
       {
         property: "og:description",
         content:
-          "The unified intelligence hub for all athletes: lifts, jumps, nutrition, and sleep synthesised into one readiness signal.",
+          "A context-aware AI head coach. FIXA fuses lifts, jumps, sleep, nutrition and daily wellness into one adaptive plan.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "FIXA — Athletic Intelligence Hub" },
-      { name: "twitter:description", content: "The unified intelligence hub for all athletes: lifts, jumps, nutrition, and sleep synthesised into one readiness signal." },
+      { name: "twitter:title", content: "FIXA - Dynamic Athlete Intelligence" },
+      { name: "twitter:description", content: "A context-aware AI head coach. FIXA fuses lifts, jumps, sleep, nutrition and daily wellness into one adaptive plan." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ebad80a5-bd04-4643-9bce-383eedfdb2ba/id-preview-132ce496--b2e21f1c-289f-4929-aa68-df1e6ee33f83.lovable.app-1784793779359.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ebad80a5-bd04-4643-9bce-383eedfdb2ba/id-preview-132ce496--b2e21f1c-289f-4929-aa68-df1e6ee33f83.lovable.app-1784793779359.png" },
     ],

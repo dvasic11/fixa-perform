@@ -23,17 +23,17 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FIXA — Dynamic Athletic Intelligence" },
+      { title: "FIXA - Dynamic Athlete Intelligence" },
       {
         name: "description",
         content:
           "A context-aware AI head coach. FIXA fuses lifts, jumps, sleep, nutrition and daily wellness into one adaptive plan.",
       },
-      { property: "og:title", content: "FIXA — Dynamic Athletic Intelligence" },
+      { property: "og:title", content: "FIXA - Dynamic Athlete Intelligence" },
       {
         property: "og:description",
         content:
-          "Your daily readiness, holistic diagnosis, and today's most important intervention — in one glance.",
+          "A context-aware AI head coach. FIXA fuses lifts, jumps, sleep, nutrition and daily wellness into one adaptive plan.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
