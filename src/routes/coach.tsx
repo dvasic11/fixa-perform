@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Screen, Card, Chip, Ring } from "@/components/ui-bits";
+import { ChatDrawer } from "@/components/chat-drawer";
 import { intelligenceEngine, readinessDynamic } from "@/lib/mock-data";
 import {
   Brain,
@@ -49,9 +51,26 @@ const signalIcon = {
 
 function CoachPage() {
   const e = intelligenceEngine;
+  const [chatOpen, setChatOpen] = useState(false);
   return (
     <AppShell>
       <Screen subtitle="Adaptive Engine" title="Diagnosis">
+        <button
+          onClick={() => setChatOpen(true)}
+          className="fx-card flex w-full items-center gap-3 border-primary/40 p-3 text-left active:scale-[0.99] transition-transform"
+        >
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl fx-gradient-primary text-primary-foreground">
+            <MessageCircle className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black">Chat with AI S&amp;C Coach</p>
+            <p className="text-[11px] text-muted-foreground">
+              Discuss slumps, fatigue &amp; swaps — updates the plan live.
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+        </button>
+
         {/* Verdict hero */}
         <Card className="relative overflow-hidden border-primary/40">
           <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-primary/15 blur-3xl" />
@@ -191,6 +210,7 @@ function CoachPage() {
           </Card>
         </Link>
       </Screen>
+      <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} agent="coach" />
     </AppShell>
   );
 }

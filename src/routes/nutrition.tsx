@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Screen, Card, Ring, Bar, Chip, Sheet } from "@/components/ui-bits";
+import { ChatDrawer } from "@/components/chat-drawer";
 import { nutritionToday, nutritionScore } from "@/lib/mock-data";
 import {
   Plus,
@@ -15,6 +16,7 @@ import {
   Pencil,
   Check,
   X,
+  MessageCircle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/nutrition")({
@@ -38,6 +40,7 @@ function NutritionPage() {
   const [logOpen, setLogOpen] = useState(false);
   const [editing, setEditing] = useState<Meal | null>(null);
   const [aiText, setAiText] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
 
   const kcal = meals.reduce((s, m) => s + m.kcal, 0);
   const P = meals.reduce((s, m) => s + m.p, 0);
@@ -242,6 +245,16 @@ function NutritionPage() {
           />
         )}
       </Sheet>
+
+      {/* AI NUTRITIONIST FAB */}
+      <button
+        onClick={() => setChatOpen(true)}
+        aria-label="Chat with AI Nutritionist"
+        className="fixed bottom-28 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full fx-gradient-primary text-primary-foreground shadow-[0_10px_30px_-5px_rgba(0,0,0,0.6)] active:scale-95 transition-transform"
+      >
+        <MessageCircle className="h-6 w-6" strokeWidth={2.4} />
+      </button>
+      <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} agent="nutritionist" />
     </AppShell>
   );
 }
