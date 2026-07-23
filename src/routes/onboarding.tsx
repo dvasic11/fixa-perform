@@ -311,9 +311,9 @@ function OnboardingPage() {
           >
             <div className="flex items-center gap-2">
               {plan.verdict === "unsafe" ? (
-                <Chip tone="danger"><AlertTriangle className="mr-1 inline h-3 w-3" /> Unsafe</Chip>
+                <Chip tone="warning"><AlertTriangle className="mr-1 inline h-3 w-3" /> Unsafe</Chip>
               ) : plan.verdict === "aggressive" ? (
-                <Chip tone="warn">Aggressive</Chip>
+                <Chip tone="warning">Aggressive</Chip>
               ) : (
                 <Chip tone="primary"><Check className="mr-1 inline h-3 w-3" /> Achievable</Chip>
               )}
