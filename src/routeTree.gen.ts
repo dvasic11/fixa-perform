@@ -13,6 +13,7 @@ import { Route as RecoveryRouteImport } from './routes/recovery'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PerformanceRouteImport } from './routes/performance'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as LiftsRouteImport } from './routes/lifts'
 import { Route as CoachRouteImport } from './routes/coach'
@@ -36,6 +37,11 @@ const PremiumRoute = PremiumRouteImport.update({
 const PerformanceRoute = PerformanceRouteImport.update({
   id: '/performance',
   path: '/performance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NutritionRoute = NutritionRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/coach': typeof CoachRoute
   '/lifts': typeof LiftsRoute
   '/nutrition': typeof NutritionRoute
+  '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/coach': typeof CoachRoute
   '/lifts': typeof LiftsRoute
   '/nutrition': typeof NutritionRoute
+  '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/coach': typeof CoachRoute
   '/lifts': typeof LiftsRoute
   '/nutrition': typeof NutritionRoute
+  '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/lifts'
     | '/nutrition'
+    | '/onboarding'
     | '/performance'
     | '/premium'
     | '/profile'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/lifts'
     | '/nutrition'
+    | '/onboarding'
     | '/performance'
     | '/premium'
     | '/profile'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/lifts'
     | '/nutrition'
+    | '/onboarding'
     | '/performance'
     | '/premium'
     | '/profile'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   CoachRoute: typeof CoachRoute
   LiftsRoute: typeof LiftsRoute
   NutritionRoute: typeof NutritionRoute
+  OnboardingRoute: typeof OnboardingRoute
   PerformanceRoute: typeof PerformanceRoute
   PremiumRoute: typeof PremiumRoute
   ProfileRoute: typeof ProfileRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/performance'
       fullPath: '/performance'
       preLoaderRoute: typeof PerformanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nutrition': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoachRoute: CoachRoute,
   LiftsRoute: LiftsRoute,
   NutritionRoute: NutritionRoute,
+  OnboardingRoute: OnboardingRoute,
   PerformanceRoute: PerformanceRoute,
   PremiumRoute: PremiumRoute,
   ProfileRoute: ProfileRoute,
