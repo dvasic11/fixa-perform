@@ -175,6 +175,23 @@ function ProfilePage() {
             </div>
           </Card>
         </Link>
+
+        <Link to="/onboarding" className="block">
+          <Card className="border-primary/25">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl fx-gradient-primary">
+                <Sparkles className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">Re-run AI goal setting</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Negotiate a new goal with the engine · position-aware.
+                </p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </Card>
+        </Link>
       </Screen>
     </AppShell>
   );
