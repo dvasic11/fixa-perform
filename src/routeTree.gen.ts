@@ -12,13 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RecoveryRouteImport } from './routes/recovery'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PremiumRouteImport } from './routes/premium'
-import { Route as PlanRouteImport } from './routes/plan'
 import { Route as PerformanceRouteImport } from './routes/performance'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as LiftsRouteImport } from './routes/lifts'
 import { Route as CoachRouteImport } from './routes/coach'
-import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
 
 const RecoveryRoute = RecoveryRouteImport.update({
@@ -34,11 +32,6 @@ const ProfileRoute = ProfileRouteImport.update({
 const PremiumRoute = PremiumRouteImport.update({
   id: '/premium',
   path: '/premium',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlanRoute = PlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerformanceRoute = PerformanceRouteImport.update({
@@ -66,11 +59,6 @@ const CoachRoute = CoachRouteImport.update({
   path: '/coach',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChatRoute = ChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -79,26 +67,22 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/chat': typeof ChatRoute
   '/coach': typeof CoachRoute
   '/lifts': typeof LiftsRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
-  '/plan': typeof PlanRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
   '/recovery': typeof RecoveryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/chat': typeof ChatRoute
   '/coach': typeof CoachRoute
   '/lifts': typeof LiftsRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
-  '/plan': typeof PlanRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
   '/recovery': typeof RecoveryRoute
@@ -106,13 +90,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/chat': typeof ChatRoute
   '/coach': typeof CoachRoute
   '/lifts': typeof LiftsRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/performance': typeof PerformanceRoute
-  '/plan': typeof PlanRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
   '/recovery': typeof RecoveryRoute
@@ -121,39 +103,33 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/chat'
     | '/coach'
     | '/lifts'
     | '/nutrition'
     | '/onboarding'
     | '/performance'
-    | '/plan'
     | '/premium'
     | '/profile'
     | '/recovery'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/chat'
     | '/coach'
     | '/lifts'
     | '/nutrition'
     | '/onboarding'
     | '/performance'
-    | '/plan'
     | '/premium'
     | '/profile'
     | '/recovery'
   id:
     | '__root__'
     | '/'
-    | '/chat'
     | '/coach'
     | '/lifts'
     | '/nutrition'
     | '/onboarding'
     | '/performance'
-    | '/plan'
     | '/premium'
     | '/profile'
     | '/recovery'
@@ -161,13 +137,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ChatRoute: typeof ChatRoute
   CoachRoute: typeof CoachRoute
   LiftsRoute: typeof LiftsRoute
   NutritionRoute: typeof NutritionRoute
   OnboardingRoute: typeof OnboardingRoute
   PerformanceRoute: typeof PerformanceRoute
-  PlanRoute: typeof PlanRoute
   PremiumRoute: typeof PremiumRoute
   ProfileRoute: typeof ProfileRoute
   RecoveryRoute: typeof RecoveryRoute
@@ -194,13 +168,6 @@ declare module '@tanstack/react-router' {
       path: '/premium'
       fullPath: '/premium'
       preLoaderRoute: typeof PremiumRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plan': {
-      id: '/plan'
-      path: '/plan'
-      fullPath: '/plan'
-      preLoaderRoute: typeof PlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/performance': {
@@ -238,13 +205,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/chat': {
-      id: '/chat'
-      path: '/chat'
-      fullPath: '/chat'
-      preLoaderRoute: typeof ChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -257,13 +217,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ChatRoute: ChatRoute,
   CoachRoute: CoachRoute,
   LiftsRoute: LiftsRoute,
   NutritionRoute: NutritionRoute,
   OnboardingRoute: OnboardingRoute,
   PerformanceRoute: PerformanceRoute,
-  PlanRoute: PlanRoute,
   PremiumRoute: PremiumRoute,
   ProfileRoute: ProfileRoute,
   RecoveryRoute: RecoveryRoute,
