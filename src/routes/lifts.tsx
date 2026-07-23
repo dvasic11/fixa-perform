@@ -1,265 +1,248 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
-import { Screen, Card, Chip, Bar } from "@/components/ui-bits";
-import { videoLifts } from "@/lib/mock-data";
+import { Screen, Card, Chip, Segmented, LineChart } from "@/components/ui-bits";
 import {
-  Video,
+  exerciseDirectory,
+  videoVault,
+  type Exercise,
+  type ExerciseMetric,
+} from "@/lib/mock-data";
+import {
+  Search,
   Upload,
-  Camera,
   Play,
-  AlertTriangle,
-  Check,
-  Gauge,
-  Target,
-  ChevronRight,
+  ChevronLeft,
+  Video,
 } from "lucide-react";
 
 export const Route = createFileRoute("/lifts")({
   head: () => ({
     meta: [
-      { title: "Lifts · FIXA Video Analytics" },
-      {
-        name: "description",
-        content:
-          "Upload gym lifts and sprints — FIXA AI analyzes form, bar path, velocity, and estimates 1RM in seconds.",
-      },
-      { property: "og:title", content: "Lifts · FIXA Video Analytics" },
-      {
-        property: "og:description",
-        content: "AI coach overlay for squats, cleans, deadlifts, sprints & jumps — VBT + 1RM in one tap.",
-      },
+      { title: "Lifts · Deep Analytics · FIXA" },
+      { name: "description", content: "Deep exercise directory with weight, ROM, velocity and RFD charts, plus an automatic video vault." },
+      { property: "og:title", content: "Lifts · Deep Analytics · FIXA" },
+      { property: "og:description", content: "Search every exercise, toggle multi-metric progress, and scrub through every uploaded clip." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LiftsPage,
 });
 
 function LiftsPage() {
+  const [q, setQ] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return exerciseDirectory;
+    return exerciseDirectory.filter(
+      (e) =>
+        e.name.toLowerCase().includes(s) ||
+        e.category.includes(s) ||
+        e.tags.some((t) => t.toLowerCase().includes(s)),
+    );
+  }, [q]);
+
+  const active = openId ? exerciseDirectory.find((e) => e.id === openId) : null;
+  if (active) return <ExerciseDetail exercise={active} onBack={() => setOpenId(null)} />;
+
   return (
     <AppShell>
       <Screen
         subtitle="Weight Room"
-        title="AI Video Analytics"
+        title="Exercises"
         right={
           <button className="flex h-11 items-center gap-1.5 rounded-full fx-gradient-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg">
-            <Camera className="h-4 w-4" strokeWidth={2.6} /> Record
+            <Upload className="h-4 w-4" strokeWidth={2.6} /> Clip
           </button>
         }
       >
-        {/* Uploader */}
-        <Card className="relative overflow-hidden border-dashed border-primary/40">
-          <div className="absolute inset-0 fx-gradient-premium opacity-[0.08]" />
-          <div className="relative flex flex-col items-center py-4 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl fx-gradient-primary shadow-lg">
-              <Upload className="h-6 w-6 text-primary-foreground" strokeWidth={2.4} />
-            </div>
-            <p className="mt-3 text-base font-bold">Drop a lift or sprint clip</p>
-            <p className="mt-1 text-xs text-muted-foreground max-w-[260px]">
-              FIXA AI detects reps, tracks bar path, computes peak & mean velocity, scores form,
-              and estimates your 1RM — instantly.
+        {/* Search */}
+        <div className="fx-card flex items-center gap-2 p-3">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search squat, hip, RFD…"
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+          {q && (
+            <button onClick={() => setQ("")} className="text-[11px] font-semibold text-muted-foreground">
+              Clear
+            </button>
+          )}
+        </div>
+
+        {/* Directory grouped */}
+        {groupByCategory(filtered).map((g) => (
+          <div key={g.cat}>
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              {g.cat}
             </p>
-            <div className="mt-4 flex gap-2">
-              <button className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground">
-                Upload video
-              </button>
-              <button className="rounded-xl border border-border px-4 py-2 text-xs font-semibold">
-                Try demo clip
-              </button>
-            </div>
-          </div>
-        </Card>
-
-        {/* Capability strip */}
-        <div className="grid grid-cols-4 gap-2">
-          <CapabilityBadge icon={<Gauge className="h-3.5 w-3.5" />} label="VBT" />
-          <CapabilityBadge icon={<Target className="h-3.5 w-3.5" />} label="Bar path" />
-          <CapabilityBadge icon={<AlertTriangle className="h-3.5 w-3.5" />} label="Form" />
-          <CapabilityBadge icon={<Check className="h-3.5 w-3.5" />} label="1RM" />
-        </div>
-
-        {/* Featured analysis — Back Squat */}
-        <FeaturedAnalysis lift={videoLifts[0]} />
-
-        {/* History */}
-        <div>
-          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Recent analyses
-          </p>
-          <div className="space-y-2">
-            {videoLifts.slice(1).map((v) => (
-              <Card key={v.id} className="!p-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl"
-                    style={{
-                      background: `linear-gradient(135deg, oklch(0.6 0.18 ${v.thumbnail}), oklch(0.32 0.1 ${v.thumbnail}))`,
-                    }}
+            <div className="space-y-2">
+              {g.items.map((e) => {
+                const last = e.history[e.history.length - 1];
+                return (
+                  <button
+                    key={e.id}
+                    onClick={() => setOpenId(e.id)}
+                    className="fx-card block w-full p-4 text-left active:scale-[0.99] transition-transform"
                   >
-                    <Play className="h-5 w-5 text-white" fill="white" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-semibold">{v.lift}</p>
-                      <Chip tone={v.formScore >= 90 ? "success" : v.formScore >= 80 ? "primary" : "warning"}>
-                        {v.formScore}
-                      </Chip>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+                        style={{
+                          background: `linear-gradient(135deg, oklch(0.6 0.18 ${e.hue}), oklch(0.32 0.1 ${e.hue}))`,
+                        }}
+                      >
+                        <Video className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-sm font-semibold">{e.name}</p>
+                          <Chip>{e.primaryMetric.toUpperCase()}</Chip>
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          {e.tags.join(" · ")}
+                        </p>
+                        <p className="mt-1 text-[11px] text-primary tabular-nums">
+                          {metricPreview(e.primaryMetric, last)}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">{v.date}</p>
-                    <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-                      {v.load > 0 && <span>{v.load}kg × {v.reps}</span>}
-                      <span>Peak {v.peakVelocity.toFixed(2)} m/s</span>
-                      {v.estimated1RM > 0 && <span>1RM ~{v.estimated1RM}kg</span>}
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        <Link to="/coach" className="block">
-          <Card className="border-primary/30">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                <Target className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">See what to strengthen</p>
-                <p className="text-[11px] text-muted-foreground">
-                  Master engine linked these lifts to your vertical & sprint bottlenecks.
-                </p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                );
+              })}
             </div>
-          </Card>
-        </Link>
+          </div>
+        ))}
       </Screen>
     </AppShell>
   );
 }
 
-function CapabilityBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1 rounded-xl bg-muted/60 py-2">
-      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/15 text-primary">
-        {icon}
-      </div>
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
-    </div>
-  );
+function metricPreview(m: ExerciseMetric, last: Exercise["history"][number]) {
+  if (m === "weight") return `Latest ${last.weight}kg · ${last.velocity.toFixed(2)} m/s`;
+  if (m === "velocity") return `Latest ${last.velocity.toFixed(2)} m/s @ ${last.weight}kg`;
+  if (m === "rfd") return `RFD ${last.rfd}`;
+  return `ROM ${last.rom}°`;
 }
 
-function FeaturedAnalysis({ lift }: { lift: typeof videoLifts[number] }) {
+function groupByCategory(items: Exercise[]) {
+  const order: Exercise["category"][] = ["strength", "power", "mobility", "prehab", "conditioning"];
+  const map = new Map<string, Exercise[]>();
+  for (const e of items) {
+    if (!map.has(e.category)) map.set(e.category, []);
+    map.get(e.category)!.push(e);
+  }
+  return order
+    .filter((c) => map.has(c))
+    .map((cat) => ({ cat: cat.charAt(0).toUpperCase() + cat.slice(1), items: map.get(cat)! }));
+}
+
+// ------------------------------------------------------------------
+// EXERCISE DETAIL — multi-metric chart + video vault
+// ------------------------------------------------------------------
+function ExerciseDetail({ exercise, onBack }: { exercise: Exercise; onBack: () => void }) {
+  const [metric, setMetric] = useState<ExerciseMetric>(exercise.primaryMetric);
+  const labels = exercise.history.map((h) => h.date);
+  const data = exercise.history.map((h) =>
+    metric === "weight" ? h.weight
+    : metric === "rom" ? h.rom
+    : metric === "velocity" ? h.velocity
+    : h.rfd,
+  );
+  const suffix =
+    metric === "weight" ? "kg"
+    : metric === "rom" ? "°"
+    : metric === "velocity" ? " m/s"
+    : "";
+  const clips = exercise.history
+    .filter((h) => h.videoId)
+    .map((h) => ({ ...videoVault[h.videoId!], sessionDate: h.date }))
+    .reverse();
+
   return (
-    <Card className="!p-0 overflow-hidden">
-      {/* Video preview with AI overlay */}
-      <div
-        className="relative aspect-video w-full"
-        style={{
-          background: `linear-gradient(135deg, oklch(0.55 0.18 ${lift.thumbnail}), oklch(0.22 0.06 ${lift.thumbnail}))`,
-        }}
+    <AppShell>
+      <Screen
+        subtitle={exercise.category.toUpperCase()}
+        title={exercise.name}
+        right={
+          <button
+            onClick={onBack}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-foreground"
+            aria-label="Back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        }
       >
-        {/* Skeleton overlay simulation */}
-        <svg className="absolute inset-0 h-full w-full opacity-70" viewBox="0 0 100 60">
-          <line x1="50" y1="8" x2="50" y2="20" stroke="var(--color-primary)" strokeWidth="0.5" />
-          <circle cx="50" cy="6" r="2" fill="var(--color-primary)" />
-          <line x1="50" y1="20" x2="42" y2="34" stroke="var(--color-primary)" strokeWidth="0.5" />
-          <line x1="50" y1="20" x2="58" y2="34" stroke="var(--color-primary)" strokeWidth="0.5" />
-          <line x1="42" y1="34" x2="40" y2="48" stroke="var(--color-primary)" strokeWidth="0.5" />
-          <line x1="58" y1="34" x2="60" y2="48" stroke="var(--color-primary)" strokeWidth="0.5" />
-          <line x1="40" y1="48" x2="38" y2="56" stroke="var(--color-primary)" strokeWidth="0.5" />
-          <line x1="60" y1="48" x2="62" y2="56" stroke="var(--color-primary)" strokeWidth="0.5" />
-          {/* bar path */}
-          <path d="M35 22 Q34 34 35 46" stroke="var(--color-accent-orange)" strokeWidth="0.6" fill="none" strokeDasharray="1 1" />
-          <path d="M65 22 Q66 34 65 46" stroke="var(--color-accent-orange)" strokeWidth="0.6" fill="none" strokeDasharray="1 1" />
-        </svg>
-
-        <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/50 px-2 py-1 backdrop-blur">
-          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white">
-            AI overlay
-          </span>
-        </div>
-        <div className="absolute right-3 top-3 rounded-md bg-black/50 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur">
-          Rep 3 / 3
-        </div>
-        <button className="absolute inset-0 m-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/95 shadow-2xl">
-          <Play className="h-6 w-6 text-black" fill="black" />
-        </button>
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest opacity-80">
-              {lift.date}
+        <Card>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Progress
             </p>
-            <p className="text-lg font-black">{lift.lift}</p>
+            <Chip tone="primary">{exercise.history.length} sessions</Chip>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] uppercase tracking-widest opacity-80">Load</p>
-            <p className="text-lg font-black">{lift.load}kg</p>
+          <Segmented<ExerciseMetric>
+            value={metric}
+            onChange={setMetric}
+            options={[
+              { value: "weight",   label: "Weight" },
+              { value: "rom",      label: "ROM" },
+              { value: "velocity", label: "Velocity" },
+              { value: "rfd",      label: "RFD" },
+            ]}
+          />
+          <div className="mt-4">
+            <LineChart data={data} labels={labels} suffix={suffix} />
           </div>
-        </div>
-      </div>
+        </Card>
 
-      {/* Metrics grid */}
-      <div className="p-5 space-y-4">
-        <div className="grid grid-cols-3 gap-3">
-          <VbtMetric label="Peak vel" value={lift.peakVelocity.toFixed(2)} unit="m/s" />
-          <VbtMetric label="Mean vel" value={lift.meanVelocity.toFixed(2)} unit="m/s" />
-          <VbtMetric label="Est. 1RM" value={`${lift.estimated1RM}`} unit="kg" />
-        </div>
-
+        {/* Video vault */}
         <div>
-          <div className="mb-1 flex items-center justify-between text-[11px]">
-            <span className="font-medium text-muted-foreground">Bar path linearity</span>
-            <span className="font-semibold tabular-nums">{lift.barPath}/100</span>
-          </div>
-          <Bar value={lift.barPath} max={100} color="var(--color-accent-orange)" />
-        </div>
-        <div>
-          <div className="mb-1 flex items-center justify-between text-[11px]">
-            <span className="font-medium text-muted-foreground">Form score</span>
-            <span className="font-semibold tabular-nums">{lift.formScore}/100</span>
-          </div>
-          <Bar value={lift.formScore} max={100} color="var(--color-primary)" />
-        </div>
-
-        <div className="rounded-xl border border-primary/30 bg-primary/[0.05] p-3">
-          <div className="flex items-center gap-2">
-            <Video className="h-3.5 w-3.5 text-primary" />
-            <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
-              AI form breakdown
+          <div className="mb-2 flex items-center justify-between px-1">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Video vault
             </p>
+            <span className="text-[11px] text-muted-foreground">
+              {clips.length} clip{clips.length === 1 ? "" : "s"} archived
+            </span>
           </div>
-          <ul className="mt-2 space-y-1.5">
-            {lift.weaknesses.map((w) => (
-              <li key={w} className="flex items-start gap-2 text-xs text-foreground">
-                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--color-accent-orange)]" />
-                <span>{w}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-            Relative strength <span className="font-semibold text-foreground">{lift.relStrength.toFixed(2)}× BW</span>.
-            Mean velocity below 0.55 m/s → sub-maximal power expression. See Coach for prescription.
-          </p>
+          {clips.length === 0 ? (
+            <Card>
+              <p className="text-[13px] text-muted-foreground">
+                No clips yet — every uploaded video for this exercise will archive here automatically.
+              </p>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {clips.map((c) => (
+                <Card key={c.id} className="!p-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="relative flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl"
+                      style={{
+                        background: `linear-gradient(135deg, oklch(0.55 0.18 ${c.hue}), oklch(0.22 0.06 ${c.hue}))`,
+                      }}
+                    >
+                      <Play className="h-5 w-5 text-white" fill="white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                        {c.sessionDate}
+                      </p>
+                      <p className="text-sm font-semibold">{c.note}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-    </Card>
-  );
-}
-
-function VbtMetric({ label, value, unit }: { label: string; value: string; unit: string }) {
-  return (
-    <div className="rounded-xl bg-muted/60 p-3">
-      <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 text-xl font-black leading-none tabular-nums">
-        {value}
-        <span className="ml-0.5 text-[10px] font-medium text-muted-foreground">{unit}</span>
-      </p>
-    </div>
+      </Screen>
+    </AppShell>
   );
 }
