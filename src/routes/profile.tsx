@@ -1,8 +1,51 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
-import { Screen, Card, Chip, Bar } from "@/components/ui-bits";
-import { athlete, sleepLog } from "@/lib/mock-data";
-import { Camera, Moon, Target, User, Ruler, Weight, Award, ChevronRight, Sparkles } from "lucide-react";
+import { Screen, Card, Chip, Bar, Segmented, LineChart } from "@/components/ui-bits";
+import { athlete, sleepLog, exerciseDirectory, jumpMetrics } from "@/lib/mock-data";
+import { Camera, Moon, Target, User, Ruler, Weight, Award, ChevronRight, Sparkles, LineChart as LineIcon } from "lucide-react";
+import { useState } from "react";
+
+type ProgressKey = "explosive" | "strength" | "power";
+
+const PROGRESS_META: Record<ProgressKey, {
+  label: string;
+  suffix: string;
+  color: string;
+  labels: string[];
+  data: number[];
+  headline: string;
+  detail: string;
+}> = {
+  explosive: {
+    label: "Explosiveness",
+    suffix: "cm",
+    color: "var(--color-primary)",
+    labels: jumpMetrics.history.map((h) => h.date),
+    data: jumpMetrics.history.map((h) => h.cm),
+    headline: "CMJ · vertical jump",
+    detail: "Reactive strength + rate of force development · sport-critical.",
+  },
+  strength: {
+    label: "Absolute strength",
+    suffix: "kg",
+    color: "var(--color-accent-blue)",
+    labels: (exerciseDirectory.find((e) => e.id === "ex_squat")?.history ?? []).map((h) => h.date),
+    data: (exerciseDirectory.find((e) => e.id === "ex_squat")?.history ?? []).map((h) =>
+      Math.round(h.weight / (1.0278 - 0.0278 * 5)),
+    ),
+    headline: "Back squat · estimated 1RM",
+    detail: "Baseline force ceiling — foundation for power output.",
+  },
+  power: {
+    label: "Power output",
+    suffix: "",
+    color: "var(--color-accent-orange)",
+    labels: (exerciseDirectory.find((e) => e.id === "ex_depth")?.history ?? []).map((h) => h.date),
+    data: (exerciseDirectory.find((e) => e.id === "ex_depth")?.history ?? []).map((h) => h.rfd),
+    headline: "Depth jump · RFD index",
+    detail: "How fast you turn strength into force · trending down currently.",
+  },
+};
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
