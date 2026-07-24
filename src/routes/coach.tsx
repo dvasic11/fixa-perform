@@ -242,3 +242,47 @@ function Section({
     </div>
   );
 }
+
+function GamedayProtocol({ hours, title }: { hours: number; title: string }) {
+  const h = Math.max(0, Math.round(hours));
+  const phase =
+    h <= 3 ? "Final activation" : h <= 12 ? "Night before" : h <= 24 ? "24h out" : "48h out";
+  return (
+    <Card className="relative overflow-hidden border-[oklch(0.65_0.18_60)]/40">
+      <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[oklch(0.78_0.18_55)]/15 blur-3xl" />
+      <div className="relative">
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[oklch(0.78_0.18_55/0.18)] text-[oklch(0.85_0.18_75)]">
+            <Flame className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <Chip tone="warning">Gameday · {phase}</Chip>
+            <p className="mt-1 truncate text-sm font-black">{title}</p>
+          </div>
+          <span className="text-xs font-bold tabular-nums text-muted-foreground">T-{h}h</span>
+        </div>
+
+        <p className="mt-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Mental protocol
+        </p>
+        <div className="mt-2 space-y-2">
+          <ProtocolRow icon={Eye}   title="Position visualization"   detail="6 min · guard-specific first-step, pull-up jumper, defensive slide reps in your head — court's-eye view." />
+          <ProtocolRow icon={Wind}  title="Box breathing 4-4-4-4"     detail="4 min pre-tip · shifts CNS toward parasympathetic without dulling arousal." />
+          <ProtocolRow icon={Brain} title="Down-regulation script"    detail="Body scan + cue-word anchor. Blocks pre-game rumination, keeps HRV up." />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function ProtocolRow({ icon: Icon, title, detail }: { icon: typeof Flame; title: string; detail: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl bg-background/60 p-3">
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+      <div className="min-w-0">
+        <p className="text-[12px] font-semibold">{title}</p>
+        <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{detail}</p>
+      </div>
+    </div>
+  );
+}
