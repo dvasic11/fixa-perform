@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { Screen, Card, Ring, Bar, Chip, Sheet } from "@/components/ui-bits";
 import { ChatDrawer } from "@/components/chat-drawer";
 import { nutritionToday, nutritionScore } from "@/lib/mock-data";
+import { useGameday } from "@/lib/calendar-store";
 import {
   Plus,
   Search,
@@ -17,6 +18,7 @@ import {
   Check,
   X,
   MessageCircle,
+  Flame,
 } from "lucide-react";
 
 export const Route = createFileRoute("/nutrition")({
@@ -41,6 +43,7 @@ function NutritionPage() {
   const [editing, setEditing] = useState<Meal | null>(null);
   const [aiText, setAiText] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  const gameday = useGameday();
 
   const kcal = meals.reduce((s, m) => s + m.kcal, 0);
   const P = meals.reduce((s, m) => s + m.p, 0);
@@ -82,6 +85,7 @@ function NutritionPage() {
           </button>
         }
       >
+        {gameday && <GamedayFuel hours={gameday.hours} title={gameday.event.title} />}
         {/* NUTRITION SCORE */}
         <Card className="relative overflow-hidden border-primary/25">
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
