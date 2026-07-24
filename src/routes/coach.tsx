@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { Screen, Card, Chip, Ring } from "@/components/ui-bits";
 import { ChatDrawer } from "@/components/chat-drawer";
 import { intelligenceEngine, readinessDynamic } from "@/lib/mock-data";
+import { useGameday } from "@/lib/calendar-store";
 import {
   Brain,
   Activity,
@@ -15,6 +16,9 @@ import {
   TrendingDown,
   TrendingUp,
   ArrowRight,
+  Flame,
+  Wind,
+  Eye,
 } from "lucide-react";
 
 export const Route = createFileRoute("/coach")({
@@ -52,9 +56,11 @@ const signalIcon = {
 function CoachPage() {
   const e = intelligenceEngine;
   const [chatOpen, setChatOpen] = useState(false);
+  const gameday = useGameday();
   return (
     <AppShell>
       <Screen subtitle="Adaptive Engine" title="Diagnosis">
+        {gameday && <GamedayProtocol hours={gameday.hours} title={gameday.event.title} />}
         <button
           onClick={() => setChatOpen(true)}
           className="fx-card flex w-full items-center gap-3 border-primary/40 p-3 text-left active:scale-[0.99] transition-transform"
