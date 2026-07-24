@@ -190,6 +190,11 @@ function ProfilePage() {
           </Card>
         </Section>
 
+        {/* Progress charts */}
+        <Section title="Athletic progress" icon={<LineIcon className="h-3.5 w-3.5" />}>
+          <ProgressCharts />
+        </Section>
+
         {/* Baseline routine */}
         <Card>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
