@@ -1,8 +1,51 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
-import { Screen, Card, Chip, Bar } from "@/components/ui-bits";
-import { athlete, sleepLog } from "@/lib/mock-data";
-import { Camera, Moon, Target, User, Ruler, Weight, Award, ChevronRight, Sparkles } from "lucide-react";
+import { Screen, Card, Chip, Bar, Segmented, LineChart } from "@/components/ui-bits";
+import { athlete, sleepLog, exerciseDirectory, jumpMetrics } from "@/lib/mock-data";
+import { Camera, Moon, Target, User, Ruler, Weight, Award, ChevronRight, Sparkles, LineChart as LineIcon } from "lucide-react";
+import { useState } from "react";
+
+type ProgressKey = "explosive" | "strength" | "power";
+
+const PROGRESS_META: Record<ProgressKey, {
+  label: string;
+  suffix: string;
+  color: string;
+  labels: string[];
+  data: number[];
+  headline: string;
+  detail: string;
+}> = {
+  explosive: {
+    label: "Explosiveness",
+    suffix: "cm",
+    color: "var(--color-primary)",
+    labels: jumpMetrics.history.map((h) => h.date),
+    data: jumpMetrics.history.map((h) => h.cm),
+    headline: "CMJ · vertical jump",
+    detail: "Reactive strength + rate of force development · sport-critical.",
+  },
+  strength: {
+    label: "Absolute strength",
+    suffix: "kg",
+    color: "var(--color-accent-blue)",
+    labels: (exerciseDirectory.find((e) => e.id === "ex_squat")?.history ?? []).map((h) => h.date),
+    data: (exerciseDirectory.find((e) => e.id === "ex_squat")?.history ?? []).map((h) =>
+      Math.round(h.weight / (1.0278 - 0.0278 * 5)),
+    ),
+    headline: "Back squat · estimated 1RM",
+    detail: "Baseline force ceiling — foundation for power output.",
+  },
+  power: {
+    label: "Power output",
+    suffix: "",
+    color: "var(--color-accent-orange)",
+    labels: (exerciseDirectory.find((e) => e.id === "ex_depth")?.history ?? []).map((h) => h.date),
+    data: (exerciseDirectory.find((e) => e.id === "ex_depth")?.history ?? []).map((h) => h.rfd),
+    headline: "Depth jump · RFD index",
+    detail: "How fast you turn strength into force · trending down currently.",
+  },
+};
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -147,6 +190,11 @@ function ProfilePage() {
           </Card>
         </Section>
 
+        {/* Progress charts */}
+        <Section title="Athletic progress" icon={<LineIcon className="h-3.5 w-3.5" />}>
+          <ProgressCharts />
+        </Section>
+
         {/* Baseline routine */}
         <Card>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -281,5 +329,58 @@ function RoutineRow({ label, value, pct }: { label: string; value: string; pct: 
       </div>
       <Bar value={pct} max={100} color="var(--color-primary)" />
     </div>
+  );
+}
+
+function ProgressCharts() {
+  const [key, setKey] = useState<ProgressKey>("explosive");
+  const meta = PROGRESS_META[key];
+  const first = meta.data[0] ?? 0;
+  const last = meta.data[meta.data.length - 1] ?? 0;
+  const delta = last - first;
+  const pct = first === 0 ? 0 : Math.round((delta / first) * 100);
+  return (
+    <Card>
+      <Segmented<ProgressKey>
+        value={key}
+        onChange={setKey}
+        options={[
+          { value: "explosive", label: "Explosive" },
+          { value: "strength",  label: "Strength" },
+          { value: "power",     label: "Power" },
+        ]}
+      />
+      <div className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {meta.headline}
+        </p>
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="text-3xl font-black tabular-nums">
+            {last}
+            <span className="ml-1 text-sm font-medium text-muted-foreground">{meta.suffix}</span>
+          </span>
+          <span
+            className={`text-xs font-bold tabular-nums ${
+              delta >= 0 ? "text-primary" : "text-[color:var(--color-accent-orange)]"
+            }`}
+          >
+            {delta >= 0 ? "+" : ""}
+            {delta}
+            {meta.suffix} · {pct >= 0 ? "+" : ""}
+            {pct}%
+          </span>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{meta.detail}</p>
+      </div>
+      <div className="mt-3">
+        <LineChart
+          data={meta.data}
+          labels={meta.labels}
+          color={meta.color}
+          suffix={meta.suffix}
+          height={160}
+        />
+      </div>
+    </Card>
   );
 }

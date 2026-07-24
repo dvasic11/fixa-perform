@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { Screen, Card, Ring, Bar, Chip, Sheet } from "@/components/ui-bits";
 import { ChatDrawer } from "@/components/chat-drawer";
 import { nutritionToday, nutritionScore } from "@/lib/mock-data";
+import { useGameday } from "@/lib/calendar-store";
 import {
   Plus,
   Search,
@@ -17,6 +18,7 @@ import {
   Check,
   X,
   MessageCircle,
+  Flame,
 } from "lucide-react";
 
 export const Route = createFileRoute("/nutrition")({
@@ -41,6 +43,7 @@ function NutritionPage() {
   const [editing, setEditing] = useState<Meal | null>(null);
   const [aiText, setAiText] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  const gameday = useGameday();
 
   const kcal = meals.reduce((s, m) => s + m.kcal, 0);
   const P = meals.reduce((s, m) => s + m.p, 0);
@@ -82,6 +85,7 @@ function NutritionPage() {
           </button>
         }
       >
+        {gameday && <GamedayFuel hours={gameday.hours} title={gameday.event.title} />}
         {/* NUTRITION SCORE */}
         <Card className="relative overflow-hidden border-primary/25">
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
@@ -359,5 +363,48 @@ function NumField({ label, value, onChange }: { label: string; value: number; on
         className="mt-1 w-full rounded-lg bg-muted/60 px-2 py-2 text-sm tabular-nums outline-none focus:ring-2 focus:ring-primary/40"
       />
     </label>
+  );
+}
+
+function GamedayFuel({ hours, title }: { hours: number; title: string }) {
+  const h = Math.max(0, Math.round(hours));
+  const timeline = [
+    { t: "T-24h", label: "Carb load", detail: "+150g carbs · rice, oats, fruit · low-fibre by evening." },
+    { t: "T-3h",  label: "Pre-game meal", detail: "~120g carbs + 30g protein · low fat · white rice + chicken." },
+    { t: "T-45m", label: "Top-up",   detail: "30g fast carbs (banana + sports drink) · sip 300ml water." },
+    { t: "Half",  label: "Intra",    detail: "20-30g fast carbs · gel or drink · electrolytes." },
+    { t: "Post",  label: "Refuel",   detail: "1.2 g/kg carbs + 30g protein within 60 min." },
+  ];
+  return (
+    <Card className="relative overflow-hidden border-[oklch(0.65_0.18_60)]/40">
+      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[oklch(0.78_0.18_55)]/15 blur-3xl" />
+      <div className="relative">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[oklch(0.78_0.18_55/0.18)] text-[oklch(0.85_0.18_75)]">
+            <Flame className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <Chip tone="warning">Gameday fuel · T-{h}h</Chip>
+            <p className="mt-1 truncate text-sm font-black">{title}</p>
+            <p className="text-[11px] text-muted-foreground">
+              Targets auto-shifted: +40% carbs, −25% fat, protein held.
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 space-y-1.5">
+          {timeline.map((row) => (
+            <div key={row.t} className="flex items-start gap-3 rounded-lg bg-background/60 p-2.5">
+              <span className="w-12 shrink-0 text-[10px] font-bold uppercase tracking-wider text-primary">
+                {row.t}
+              </span>
+              <div className="min-w-0">
+                <p className="text-[12px] font-semibold">{row.label}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{row.detail}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
   );
 }

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
-import { Screen, Card, Chip, Segmented, LineChart } from "@/components/ui-bits";
+import { Screen, Card, Chip, Segmented, LineChart, Sheet } from "@/components/ui-bits";
 import {
   exerciseDirectory,
   videoVault,
@@ -19,6 +19,9 @@ import {
   TrendingDown,
   Crown,
   CheckCircle2,
+  Radio,
+  AlertTriangle,
+  Plus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/lifts")({
@@ -154,6 +157,7 @@ function ExerciseDetail({ exercise, onBack }: { exercise: Exercise; onBack: () =
   const [metric, setMetric] = useState<ExerciseMetric>(exercise.primaryMetric);
   const [scanning, setScanning] = useState(false);
   const [scanDone, setScanDone] = useState(false);
+  const [liveOpen, setLiveOpen] = useState(false);
   const labels = exercise.history.map((h) => h.date);
   const data = exercise.history.map((h) =>
     metric === "weight" ? h.weight
@@ -205,6 +209,13 @@ function ExerciseDetail({ exercise, onBack }: { exercise: Exercise; onBack: () =
           </button>
         }
       >
+        <button
+          onClick={() => setLiveOpen(true)}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl fx-gradient-primary py-3 text-sm font-bold text-primary-foreground shadow-lg active:scale-[0.99]"
+        >
+          <Radio className="h-4 w-4" /> Start Live Workout
+        </button>
+
         <Card>
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -349,7 +360,184 @@ function ExerciseDetail({ exercise, onBack }: { exercise: Exercise; onBack: () =
             </div>
           )}
         </div>
+        <LiveWorkoutSheet
+          open={liveOpen}
+          onClose={() => setLiveOpen(false)}
+          exercise={exercise}
+        />
       </Screen>
     </AppShell>
+  );
+}
+
+// ------------------------------------------------------------------
+// LIVE WORKOUT — autoregulation engine
+// ------------------------------------------------------------------
+type LiveSet = { load: number; reps: number; velocity: number; adjusted?: boolean };
+
+function LiveWorkoutSheet({
+  open,
+  onClose,
+  exercise,
+}: {
+  open: boolean;
+  onClose: () => void;
+  exercise: Exercise;
+}) {
+  const last = exercise.history[exercise.history.length - 1];
+  const baseline = useMemo(() => {
+    const vels = exercise.history.map((h) => h.velocity).filter((v) => v > 0);
+    if (!vels.length) return 0;
+    return vels.slice(-5).reduce((a, b) => a + b, 0) / Math.min(5, vels.length);
+  }, [exercise]);
+
+  const [plan, setPlan] = useState({
+    load: last.weight || 100,
+    reps: 5,
+    sets: 5,
+  });
+  const [sets, setSets] = useState<LiveSet[]>([]);
+  const [nextLoad, setNextLoad] = useState(plan.load);
+  const [nextVel, setNextVel] = useState(baseline || 0.5);
+  const [autoAlert, setAutoAlert] = useState<null | {
+    drop: number;
+    newLoad: number;
+    newSets: number;
+  }>(null);
+
+  const logSet = () => {
+    const nextSet: LiveSet = { load: nextLoad, reps: plan.reps, velocity: nextVel };
+    // Autoregulation — check first working set against baseline
+    if (sets.length === 0 && baseline > 0) {
+      const drop = ((baseline - nextVel) / baseline) * 100;
+      if (drop >= 10) {
+        const newLoad = Math.round(nextLoad * 0.9);
+        const newSets = Math.max(2, plan.sets - 2);
+        setAutoAlert({ drop: Math.round(drop), newLoad, newSets });
+        setPlan((p) => ({ ...p, sets: newSets }));
+        setNextLoad(newLoad);
+        nextSet.adjusted = true;
+      }
+    }
+    setSets((s) => [...s, nextSet]);
+  };
+
+  const reset = () => {
+    setSets([]);
+    setAutoAlert(null);
+    setNextLoad(plan.load);
+    setNextVel(baseline || 0.5);
+  };
+
+  return (
+    <Sheet open={open} onClose={onClose} title={`Live · ${exercise.name}`}>
+      <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
+        <div className="rounded-2xl border border-border bg-surface-elevated/60 p-3">
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Baseline mean velocity</span>
+            <span className="font-bold text-foreground tabular-nums">
+              {baseline > 0 ? baseline.toFixed(2) : "—"} m/s
+            </span>
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Plan</span>
+            <span className="font-bold text-foreground">
+              {plan.sets} × {plan.reps} @ {plan.load}kg
+            </span>
+          </div>
+        </div>
+
+        {autoAlert && (
+          <div className="rounded-2xl border border-[oklch(0.65_0.18_60)]/40 bg-[oklch(0.78_0.18_55/0.1)] p-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-[oklch(0.85_0.18_75)]" />
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[oklch(0.85_0.18_75)]">
+                Autoregulation triggered
+              </p>
+            </div>
+            <p className="mt-2 text-[12px] leading-relaxed">
+              First set velocity {autoAlert.drop}% below baseline — neural signal of fatigue.
+              Working load scaled to <b>{autoAlert.newLoad}kg</b> and remaining sets trimmed
+              to <b>{autoAlert.newSets}</b> to protect CNS.
+            </p>
+          </div>
+        )}
+
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Log set {sets.length + 1}
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex flex-col gap-1 text-[10px] uppercase text-muted-foreground">
+              Load (kg)
+              <input
+                type="number"
+                value={nextLoad}
+                onChange={(e) => setNextLoad(Number(e.target.value))}
+                className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-[10px] uppercase text-muted-foreground">
+              Mean velocity (m/s)
+              <input
+                type="number"
+                step="0.01"
+                value={nextVel}
+                onChange={(e) => setNextVel(Number(e.target.value))}
+                className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
+              />
+            </label>
+          </div>
+          <button
+            onClick={logSet}
+            disabled={sets.length >= plan.sets}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+          >
+            <Plus className="h-4 w-4" /> Log set
+          </button>
+        </div>
+
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Sets · {sets.length}/{plan.sets}
+          </p>
+          {sets.length === 0 ? (
+            <p className="rounded-xl bg-muted/40 p-4 text-center text-[11px] text-muted-foreground">
+              No sets logged yet.
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              {sets.map((s, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-xl bg-surface-elevated/60 px-3 py-2 text-[12px]"
+                >
+                  <span className="font-semibold">Set {i + 1}</span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {s.load}kg · {s.reps}r · {s.velocity.toFixed(2)} m/s
+                  </span>
+                  {s.adjusted && <Chip tone="warning">auto</Chip>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={reset}
+            className="flex-1 rounded-xl border border-border bg-background py-2 text-xs font-semibold text-muted-foreground"
+          >
+            Reset
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl bg-primary py-2 text-xs font-semibold text-primary-foreground"
+          >
+            End session
+          </button>
+        </div>
+      </div>
+    </Sheet>
   );
 }
