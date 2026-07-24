@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Screen, Card, Ring, Chip } from "@/components/ui-bits";
+import { TrainingCalendarSheet } from "@/components/training-calendar";
+import { useGameday, usePeakingTarget } from "@/lib/calendar-store";
 import {
   athlete,
   readinessDynamic,
@@ -18,6 +20,8 @@ import {
   Dumbbell,
   HeartPulse,
   MessageCircle,
+  CalendarDays,
+  Flame,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -52,6 +56,9 @@ const domainMeta = {
 function Dashboard() {
   const [wellness, setWellness] = useState(wellnessToday);
   const [submitted, setSubmitted] = useState(false);
+  const [calOpen, setCalOpen] = useState(false);
+  const gameday = useGameday();
+  const peak = usePeakingTarget();
   const engine = intelligenceEngine;
   const top = engine.interventions[0];
 
@@ -61,15 +68,67 @@ function Dashboard() {
         subtitle={`Hi ${athlete.name.split(" ")[0]} · ${athlete.streakDays}d streak`}
         title="Today"
         right={
-          <Link
-            to="/profile"
-            className="flex h-11 w-11 items-center justify-center rounded-full fx-gradient-primary text-sm font-bold text-primary-foreground shadow-lg"
-            aria-label="Open profile"
-          >
-            {athlete.avatarInitials}
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCalOpen(true)}
+              aria-label="Open training calendar"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface-elevated text-foreground active:scale-95 transition"
+            >
+              <CalendarDays className="h-5 w-5" />
+            </button>
+            <Link
+              to="/profile"
+              className="flex h-11 w-11 items-center justify-center rounded-full fx-gradient-primary text-sm font-bold text-primary-foreground shadow-lg"
+              aria-label="Open profile"
+            >
+              {athlete.avatarInitials}
+            </Link>
+          </div>
         }
       >
+        {gameday && (
+          <Link to="/coach" className="block">
+            <Card className="relative overflow-hidden border-[oklch(0.65_0.18_60)]/40">
+              <div className="absolute inset-0 bg-[oklch(0.78_0.18_55)]/8" />
+              <div className="relative flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[oklch(0.78_0.18_55/0.18)] text-[oklch(0.85_0.18_75)]">
+                  <Flame className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <Chip tone="warning">Gameday mode</Chip>
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {Math.max(0, Math.round(gameday.hours))}h
+                    </span>
+                  </div>
+                  <p className="mt-1 truncate text-sm font-bold">{gameday.event.title}</p>
+                  <p className="text-[11px] text-muted-foreground">Mental + fuel protocol active — tap for the plan.</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </Card>
+          </Link>
+        )}
+
+        {peak && !gameday && (
+          <button onClick={() => setCalOpen(true)} className="block w-full text-left">
+            <Card className="!p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                  <CalendarDays className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Peaking · {peak.days} days out
+                  </p>
+                  <p className="truncate text-sm font-bold">{peak.event.title}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </Card>
+          </button>
+        )}
+
         {/* READINESS HERO — dynamic */}
         <Card className="relative overflow-hidden">
           <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
@@ -234,6 +293,7 @@ function Dashboard() {
           </div>
         </div>
       </Screen>
+      <TrainingCalendarSheet open={calOpen} onClose={() => setCalOpen(false)} />
     </AppShell>
   );
 }
