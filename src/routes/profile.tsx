@@ -331,3 +331,56 @@ function RoutineRow({ label, value, pct }: { label: string; value: string; pct: 
     </div>
   );
 }
+
+function ProgressCharts() {
+  const [key, setKey] = useState<ProgressKey>("explosive");
+  const meta = PROGRESS_META[key];
+  const first = meta.data[0] ?? 0;
+  const last = meta.data[meta.data.length - 1] ?? 0;
+  const delta = last - first;
+  const pct = first === 0 ? 0 : Math.round((delta / first) * 100);
+  return (
+    <Card>
+      <Segmented<ProgressKey>
+        value={key}
+        onChange={setKey}
+        options={[
+          { value: "explosive", label: "Explosive" },
+          { value: "strength",  label: "Strength" },
+          { value: "power",     label: "Power" },
+        ]}
+      />
+      <div className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {meta.headline}
+        </p>
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="text-3xl font-black tabular-nums">
+            {last}
+            <span className="ml-1 text-sm font-medium text-muted-foreground">{meta.suffix}</span>
+          </span>
+          <span
+            className={`text-xs font-bold tabular-nums ${
+              delta >= 0 ? "text-primary" : "text-[color:var(--color-accent-orange)]"
+            }`}
+          >
+            {delta >= 0 ? "+" : ""}
+            {delta}
+            {meta.suffix} · {pct >= 0 ? "+" : ""}
+            {pct}%
+          </span>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{meta.detail}</p>
+      </div>
+      <div className="mt-3">
+        <LineChart
+          data={meta.data}
+          labels={meta.labels}
+          color={meta.color}
+          suffix={meta.suffix}
+          height={160}
+        />
+      </div>
+    </Card>
+  );
+}
