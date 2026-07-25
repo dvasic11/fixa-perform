@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppStateProvider } from "../lib/app-state";
 import { CalendarProvider } from "../lib/calendar-store";
+import { LiveWorkoutProvider } from "../lib/live-workout";
 
 function NotFoundComponent() {
   return (
@@ -144,8 +145,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AppStateProvider>
         <CalendarProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
+          <LiveWorkoutProvider>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </LiveWorkoutProvider>
         </CalendarProvider>
       </AppStateProvider>
     </QueryClientProvider>
