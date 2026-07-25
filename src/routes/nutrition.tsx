@@ -5,6 +5,8 @@ import { Screen, Card, Ring, Bar, Chip, Sheet } from "@/components/ui-bits";
 import { ChatDrawer } from "@/components/chat-drawer";
 import { nutritionToday, nutritionScore } from "@/lib/mock-data";
 import { useGameday } from "@/lib/calendar-store";
+import { useLiveWorkout } from "@/lib/live-workout";
+import { scoreMeal, scoreColor } from "@/lib/gemini-analysis";
 import {
   Plus,
   Search,
@@ -44,6 +46,7 @@ function NutritionPage() {
   const [aiText, setAiText] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
   const gameday = useGameday();
+  const { fuelBoost, resetFuel } = useLiveWorkout();
 
   const kcal = meals.reduce((s, m) => s + m.kcal, 0);
   const P = meals.reduce((s, m) => s + m.p, 0);
@@ -86,6 +89,30 @@ function NutritionPage() {
         }
       >
         {gameday && <GamedayFuel hours={gameday.hours} title={gameday.event.title} />}
+        {fuelBoost && (
+          <Card className="border-primary/40">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl fx-gradient-primary text-primary-foreground">
+                <Zap className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <Chip tone="primary">Recovery fuel loop · live</Chip>
+                  <button
+                    onClick={resetFuel}
+                    className="text-[10px] font-semibold text-muted-foreground underline"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <p className="mt-1 text-sm font-black">
+                  Post-workout target · +{fuelBoost.carbs}g carbs · +{fuelBoost.protein}g protein
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">{fuelBoost.reason}</p>
+              </div>
+            </div>
+          </Card>
+        )}
         {/* NUTRITION SCORE */}
         <Card className="relative overflow-hidden border-primary/25">
           <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
@@ -169,31 +196,50 @@ function NutritionPage() {
             <span className="text-[11px] text-muted-foreground">{meals.length} logged · tap to edit</span>
           </div>
           <div className="space-y-2">
-            {meals.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => setEditing(m)}
-                className="fx-card block w-full p-4 text-left active:scale-[0.99] transition-transform"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Chip>{m.tag}</Chip>
-                      <span className="text-[11px] text-muted-foreground">{m.time}</span>
+            {meals.map((m) => {
+              const s = scoreMeal(m, { goal: "lean_down", workoutTime: "19:00" });
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setEditing(m)}
+                  className="fx-card block w-full p-4 text-left active:scale-[0.99] transition-transform"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Chip>{m.tag}</Chip>
+                        <span className="text-[11px] text-muted-foreground">{m.time}</span>
+                      </div>
+                      <p className="mt-1.5 truncate text-sm font-semibold">{m.name}</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        P {m.p}g · C {m.c}g · F {m.f}g
+                      </p>
+                      <p className="mt-1 text-[11px] leading-tight text-muted-foreground">
+                        <span
+                          className="font-bold"
+                          style={{ color: scoreColor(s.score) }}
+                        >
+                          {s.score}/100
+                        </span>{" "}
+                        · {s.note.split("· ").slice(1).join("· ")}
+                      </p>
                     </div>
-                    <p className="mt-1.5 truncate text-sm font-semibold">{m.name}</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      P {m.p}g · C {m.c}g · F {m.f}g
-                    </p>
+                    <div className="shrink-0 text-right">
+                      <div
+                        className="ml-auto flex h-10 w-10 items-center justify-center rounded-full text-xs font-black text-background"
+                        style={{ backgroundColor: scoreColor(s.score) }}
+                        aria-label={`AI nutrition score ${s.score}`}
+                      >
+                        {s.score}
+                      </div>
+                      <div className="mt-1 text-lg font-bold tabular-nums">{m.kcal}</div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">kcal</div>
+                      <Pencil className="ml-auto mt-1 h-3 w-3 text-muted-foreground" />
+                    </div>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-lg font-bold tabular-nums">{m.kcal}</div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">kcal</div>
-                    <Pencil className="ml-auto mt-1 h-3 w-3 text-muted-foreground" />
-                  </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       </Screen>
