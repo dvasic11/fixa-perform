@@ -3,7 +3,8 @@ import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Screen, Card, Ring, Chip, Stat } from "@/components/ui-bits";
 import { recovery } from "@/lib/mock-data";
-import { Moon, Activity, Shield, Check } from "lucide-react";
+import { useLiveWorkout } from "@/lib/live-workout";
+import { Moon, Activity, Shield, Check, Sparkles, X } from "lucide-react";
 
 export const Route = createFileRoute("/recovery")({
   head: () => ({
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/recovery")({
 
 function RecoveryPage() {
   const [routines, setRoutines] = useState(recovery.routines);
+  const { mobilityRx, clearMobility } = useLiveWorkout();
   const toggle = (id: string) =>
     setRoutines((rs) => rs.map((r) => (r.id === id ? { ...r, done: !r.done } : r)));
   const done = routines.filter((r) => r.done).length;
@@ -33,6 +35,44 @@ function RecoveryPage() {
   return (
     <AppShell>
       <Screen subtitle="Recover" title="Prehab & Recovery">
+        {mobilityRx.length > 0 && (
+          <Card className="border-primary/40">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-black">AI-injected mobility Rx</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Gemini flagged mobility restrictions during live lifts. Do these before your next session.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {mobilityRx.map((m) => (
+                <div key={m.id} className="flex items-start gap-2 rounded-xl bg-muted/40 p-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Chip tone="primary">{m.joint}</Chip>
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                        via {m.source}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[12px] font-semibold">{m.exercise}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{m.duration} min</p>
+                  </div>
+                  <button
+                    onClick={() => clearMobility(m.id)}
+                    aria-label="Mark complete"
+                    className="rounded-full bg-primary/15 p-1.5 text-primary"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
         {/* Recovery score */}
         <Card className="relative overflow-hidden">
           <div className="absolute -left-16 -top-16 h-48 w-48 rounded-full bg-[color:var(--color-accent-blue)]/10 blur-3xl" />

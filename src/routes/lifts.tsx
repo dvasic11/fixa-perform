@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Screen, Card, Chip, Segmented, LineChart, Sheet } from "@/components/ui-bits";
+import { LiveSessionSheet } from "@/components/live-session";
+import { useLiveWorkout, formatElapsed } from "@/lib/live-workout";
 import {
   exerciseDirectory,
   videoVault,
@@ -22,6 +24,8 @@ import {
   Radio,
   AlertTriangle,
   Plus,
+  Timer,
+  Zap,
 } from "lucide-react";
 
 export const Route = createFileRoute("/lifts")({
@@ -41,6 +45,8 @@ export const Route = createFileRoute("/lifts")({
 function LiftsPage() {
   const [q, setQ] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [liveOpen, setLiveOpen] = useState(false);
+  const { session, start, deficit } = useLiveWorkout();
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -67,6 +73,58 @@ function LiftsPage() {
           </button>
         }
       >
+        {/* Start / resume live workout */}
+        <button
+          onClick={() => {
+            if (!session || session.ended) start();
+            setLiveOpen(true);
+          }}
+          className="fx-card flex w-full items-center gap-3 border-primary/50 bg-gradient-to-br from-primary/15 via-transparent to-transparent p-4 text-left active:scale-[0.99] transition-transform"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl fx-gradient-primary text-primary-foreground">
+            {session && !session.ended ? <Timer className="h-5 w-5" /> : <Radio className="h-5 w-5" />}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-black">
+              {session && !session.ended ? "Live workout in progress" : "Start Live Workout"}
+            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              {session && !session.ended
+                ? `Timer ${formatElapsed(session.elapsedSec)} · ${session.entries.length} exercise${session.entries.length === 1 ? "" : "s"} logged`
+                : "Real-time set logging · Gemini video cues · autoreg fuel loop"}
+            </p>
+          </div>
+          {session && !session.ended && (
+            <span className="rounded-full bg-primary/20 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+              live
+            </span>
+          )}
+        </button>
+
+        {/* Neuromuscular deficit banner */}
+        {deficit && (
+          <Card className="border-primary/40">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <Zap className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <Chip tone="primary">{deficit.kind === "elastic" ? "Elastic deficit" : "Strength deficit"}</Chip>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {deficit.weeksTracked} wk drift · {deficit.driftPct}%
+                  </span>
+                </div>
+                <p className="mt-1 text-sm font-black">{deficit.lift}</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">{deficit.detail}</p>
+                <p className="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-[11px] leading-relaxed">
+                  <span className="font-bold text-primary">Program shift →</span> {deficit.programShift}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Search */}
         <div className="fx-card flex items-center gap-2 p-3">
           <Search className="h-4 w-4 text-muted-foreground" />
@@ -127,6 +185,7 @@ function LiftsPage() {
           </div>
         ))}
       </Screen>
+      <LiveSessionSheet open={liveOpen} onClose={() => setLiveOpen(false)} />
     </AppShell>
   );
 }

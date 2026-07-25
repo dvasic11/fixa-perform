@@ -5,6 +5,7 @@ import { Screen, Card, Chip, Ring } from "@/components/ui-bits";
 import { ChatDrawer } from "@/components/chat-drawer";
 import { intelligenceEngine, readinessDynamic } from "@/lib/mock-data";
 import { useGameday } from "@/lib/calendar-store";
+import { useLiveWorkout } from "@/lib/live-workout";
 import {
   Brain,
   Activity,
@@ -57,10 +58,40 @@ function CoachPage() {
   const e = intelligenceEngine;
   const [chatOpen, setChatOpen] = useState(false);
   const gameday = useGameday();
+  const { mobilityRx, deficit } = useLiveWorkout();
   return (
     <AppShell>
       <Screen subtitle="Adaptive Engine" title="Diagnosis">
         {gameday && <GamedayProtocol hours={gameday.hours} title={gameday.event.title} />}
+        {deficit && (
+          <Card className="border-primary/40">
+            <div className="flex items-center gap-2">
+              <Chip tone="primary">
+                {deficit.kind === "elastic" ? "Elastic deficit" : "Strength deficit"} · macro program shift
+              </Chip>
+            </div>
+            <p className="mt-2 text-[12px] leading-relaxed">{deficit.detail}</p>
+            <p className="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-[11px] leading-relaxed">
+              <span className="font-semibold text-primary">Reprogrammed →</span> {deficit.programShift}
+            </p>
+          </Card>
+        )}
+        {mobilityRx.length > 0 && (
+          <Card className="border-primary/30">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Live mobility Rx queue
+            </p>
+            <p className="mt-1 text-[12px] leading-relaxed">
+              {mobilityRx.length} restriction{mobilityRx.length === 1 ? "" : "s"} detected during live lifts —
+              injected into the Recover tab.
+            </p>
+            <ul className="mt-2 space-y-1 text-[11px] text-muted-foreground">
+              {mobilityRx.slice(0, 3).map((m) => (
+                <li key={m.id}>• {m.joint} → {m.exercise}</li>
+              ))}
+            </ul>
+          </Card>
+        )}
         <button
           onClick={() => setChatOpen(true)}
           className="fx-card flex w-full items-center gap-3 border-primary/40 p-3 text-left active:scale-[0.99] transition-transform"
